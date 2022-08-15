@@ -1,16 +1,27 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: my-eks-201 # name of cluster
+  region: us-east-1
+  version: "1.20" # kubernetes version
+
 nodeGroups: # Refer: https://github.com/weaveworks/eksctl/blob/main/examples/05-advanced-nodegroups.yaml
-  - name: pvt-201-a-1
+  - name: upg-loadme
     labels: { role: workers }
     tags:
       k8s.io/cluster-autoscaler/enabled: "true" # tag is needed for cluster autoscaler. Refer: https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md#auto-discovery-setup
       k8s.io/cluster-autoscaler/my-eks-201: "shared" # cluster name tag is optional in latest versions of EKS
-      kubernetes.io/role/internal-elb: "1"
+      kubernetes.io/role/elb: "1"
     instancesDistribution:
       instanceTypes:
         - t2.medium
     desiredCapacity: 1
     minSize: 0
-    maxSize: 3
-    privateNetworking: true # include only in private subnet
+    maxSize: 5
     subnets:
-      - my-private-201-a # 1 AZ is enough for testing
+      - my-public-201-a # 1 AZ is enough for testing
+    taints:
+      - key: critical
+        value: "true"
+        effect: NoSchedule

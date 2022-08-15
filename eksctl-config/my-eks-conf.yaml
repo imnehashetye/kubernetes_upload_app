@@ -5,23 +5,23 @@ kind: ClusterConfig
 metadata:
   name: my-eks-201 # name of cluster
   region: us-east-1
-  version: "1.20" # kubernetes version
+  version: "1.22" # kubernetes version
 vpc: # Refer: https://github.com/weaveworks/eksctl/blob/main/examples/04-existing-vpc.yaml
-  id: "vpc-0de1a436a9faa80b8"
+  id: "vpc-05ad8989a6d146830"
   subnets:
     public:
       my-public-201-a:
-        id: "subnet-0ae65e601888154eb"
+        id: "subnet-00d36063002ad68cc"
         az: "us-east-1a"
       my-public-201-b:
-        id: "subnet-0b6a103191a45de66"
+        id: "subnet-02ff5223196aeadbd"
         az: "us-east-1b"
     private:
       my-private-201-a:
-        id: "subnet-0098bd6977f3975a1"
+        id: "subnet-0eb6a14248e9ed045"
         az: "us-east-1a"
       my-private-201-b:
-        id: "subnet-0edcef161b8992d6c"
+        id: "subnet-08b85b2742d8b43cf"
         az: "us-east-1b"
   clusterEndpoints:
     publicAccess:  true
@@ -94,21 +94,22 @@ nodeGroups: # Refer: https://github.com/weaveworks/eksctl/blob/main/examples/05-
     maxSize: 1
     subnets:
       - my-public-201-a
-  # - name: upg-loadme
-  #   labels: { role: workers }
-  #   tags:
-  #     k8s.io/cluster-autoscaler/enabled: "true" # tag is needed for cluster autoscaler. Refer: https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md#auto-discovery-setup
-  #     k8s.io/cluster-autoscaler/my-eks-201: "shared" # cluster name tag is optional in latest versions of EKS
-  #     kubernetes.io/role/elb: "1"
-  #   instancesDistribution:
-  #     instanceTypes:
-  #       - t2.medium
-  #   desiredCapacity: 1
-  #   minSize: 0
-  #   maxSize: 5
-  #   subnets:
-  #     - my-public-201-b # 1 AZ is enough for testing
-  #   taints:
-  #     - key: critical
-  #       value: "true"
-  #       effect: NoSchedule
+  - name: upg-loadme
+    labels: { role: workers, critical: "true" }
+    tags:
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/my-eks-201: "shared"
+      kubernetes.io/role/elb: "1"
+    instancesDistribution:
+      instanceTypes:
+        - t2.medium
+    desiredCapacity: 1
+    minSize: 0
+    maxSize: 5
+    subnets:
+      - my-public-201-b
+    taints:
+      - key: critical
+        value: "true"
+        effect: NoSchedule
+

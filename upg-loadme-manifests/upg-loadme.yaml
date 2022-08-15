@@ -17,6 +17,15 @@ spec:
       labels:
         app: upg-loadme
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: critical
+                operator: In
+                values:
+                - "true"
       containers:
         - name: upg-loadme
           # update image id (manual or via jenkins)
@@ -55,3 +64,44 @@ spec:
     protocol: TCP
     port: 80
     targetPort: 8081
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: upg-loadme-external
+  namespace: demo
+  annotations: # Reference for complete list of annotations: https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/guide/ingress/annotations/
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/tags: CreatedBy=testUser
+    alb.ingress.kubernetes.io/subnets: subnet-00d36063002ad68cc, subnet-02ff5223196aeadbd # mention public subnets only if subnets not tagged for autodiscovery
+    alb.ingress.kubernetes.io/scheme: internet-facing
+spec:
+  rules:
+  - http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: upg-loadme
+              port:
+                number: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: upg-loadme
+  namespace: demo
+spec:
+  # Add hpa spec as per requirement
+  # Refer: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/#creating-the-autoscaler-declaratively
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: upg-loadme
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 50
